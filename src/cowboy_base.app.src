@@ -1,0 +1,11 @@
+{application, cowboy_base, [
+  {id, "cowboy_base"},
+  {description, "get the base url for a cowboy request"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+    kernel,
+    stdlib
+  ]},
+  {env, []}
+]}.
