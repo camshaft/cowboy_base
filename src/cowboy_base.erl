@@ -6,10 +6,10 @@
 execute(Req, Env) ->
   {Port, Req} = cowboy_req:port(Req),
   PortBin = list_to_binary(integer_to_list(Port)),
-  ForwardedProto = choose(cowboy_req:header(<<"x-forwarded-proto">>, Req), {<<"http">>, Req}),
-  ForwardedHost = choose(cowboy_req:header(<<"x-forwarded-host">>, Req), cowboy_req:host(Req)),
-  ForwardedPort = choose(cowboy_req:header(<<"x-forwarded-port">>, Req), {PortBin, Req}),
-  ForwardedPath = choose(cowboy_req:header(<<"x-forwarded-path">>, Req), {<<"">>, Req}),
+  ForwardedProto = choose(cowboy_req:header(<<"x-orig-proto">>, Req), {<<"http">>, Req}),
+  ForwardedHost = choose(cowboy_req:header(<<"x-orig-host">>, Req), cowboy_req:host(Req)),
+  ForwardedPort = choose(cowboy_req:header(<<"x-orig-port">>, Req), {PortBin, Req}),
+  ForwardedPath = choose(cowboy_req:header(<<"x-orig-path">>, Req), {<<"">>, Req}),
   Req2 = cowboy_req:set_meta(base, format(ForwardedProto, ForwardedHost, ForwardedPort, ForwardedPath), Req),
   {ok, Req2, Env}.
 
