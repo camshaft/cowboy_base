@@ -1,6 +1,7 @@
 -module (cowboy_base).
 
 -export([execute/2]).
+-export([init/0]).
 -export([init/1]).
 
 -export([resolve/2]).
@@ -8,6 +9,9 @@
 execute(Req, Env) ->
   Fun = init([]),
   Fun(Req, Env).
+
+init() ->
+  init([]).
 
 init(Options) ->
   ProtoHeader = fast_key:get(proto, Options, <<"x-orig-proto">>),
@@ -36,7 +40,6 @@ format(<<"https">>, Host, <<"443">>, Path) ->
   <<"https://",Host/binary,Path/binary>>;
 format(Proto, Host, Port, Path) ->
   <<Proto/binary,"://",Host/binary,":",Port/binary,Path/binary>>.
-
 
 resolve(Parts, Req) when is_list(Parts) ->
   resolve(binary_join(Parts, <<"/">>), Req);
