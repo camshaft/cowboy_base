@@ -1,17 +1,29 @@
 -module (cowboy_base).
 
 -export([execute/2]).
+-export([init/1]).
+
 -export([resolve/2]).
 
 execute(Req, Env) ->
-  {Port, Req} = cowboy_req:port(Req),
-  PortBin = list_to_binary(integer_to_list(Port)),
-  ForwardedProto = choose(cowboy_req:header(<<"x-orig-proto">>, Req), {<<"http">>, Req}),
-  ForwardedHost = choose(cowboy_req:header(<<"x-orig-host">>, Req), cowboy_req:host(Req)),
-  ForwardedPort = choose(cowboy_req:header(<<"x-orig-port">>, Req), {PortBin, Req}),
-  ForwardedPath = choose(cowboy_req:header(<<"x-orig-path">>, Req), {<<"">>, Req}),
-  Req2 = cowboy_req:set_meta(base, format(ForwardedProto, ForwardedHost, ForwardedPort, ForwardedPath), Req),
-  {ok, Req2, Env}.
+  Fun = init([]),
+  Fun(Req, Env).
+
+init(Options) ->
+  ProtoHeader = fast_key:get(proto, Options, <<"x-orig-proto">>),
+  HostHeader = fast_key:get(host, Options, <<"x-orig-host">>),
+  PortHeader = fast_key:get(port, Options, <<"x-orig-port">>),
+  PathHeader = fast_key:get(path, Options, <<"x-orig-path">>),
+  fun (Req, Env) ->
+    {Port, Req} = cowboy_req:port(Req),
+    PortBin = list_to_binary(integer_to_list(Port)),
+    ForwardedProto = choose(cowboy_req:header(ProtoHeader, Req), {<<"http">>, Req}),
+    ForwardedHost = choose(cowboy_req:header(HostHeader, Req), cowboy_req:host(Req)),
+    ForwardedPort = choose(cowboy_req:header(PortHeader, Req), {PortBin, Req}),
+    ForwardedPath = choose(cowboy_req:header(PathHeader, Req), {<<"">>, Req}),
+    Req2 = cowboy_req:set_meta(base, format(ForwardedProto, ForwardedHost, ForwardedPort, ForwardedPath), Req),
+    {ok, Req2, Env}
+  end.
 
 choose({undefined, _}, {B, _}) -> B;
 choose({A, _}, _) -> A.
